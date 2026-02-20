@@ -1,0 +1,11 @@
+database:
+  host: example.com
+  port: 8080
+  user: example_value
+  password: your_password_here
+  database: your_database_name
+  echo: true_or_false
+
+app:
+  token: your_bot_token
+  log_level: info

@@ -1,0 +1,61 @@
+services:
+    bot-sopk:
+        container_name: bot-sopk
+        depends_on: 
+            migrator-sopk:
+                condition: service_completed_successfully
+        build:
+            context: ../
+            dockerfile: ./src/Dockerfile
+        restart: unless-stopped     # always
+        ports: 
+            - "3012:3012"
+        networks:
+            - postgres-sopk
+
+    db-sopk:
+        container_name: db-sopk
+        hostname: db-sopk
+        image: postgres:17.4-alpine3.20
+        command:
+            - "postgres"
+        env_file:
+            - postgres.env
+        volumes:
+            - postgres-sopk:/var/lib/postgresql/data
+        ports:
+            - "5433:5432"
+        restart: unless-stopped     # always
+        deploy:
+            resources:
+                limits:
+                    cpus: '1'
+                    memory: 4G
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        networks:
+            - postgres-sopk
+
+    migrator-sopk:
+        container_name: migrator-sopk
+        depends_on: 
+            db-sopk:
+                condition: service_started
+        env_file:
+            - migrator.env
+        build:
+            context: ../migrations
+            dockerfile: Dockerfile
+        networks:
+            - postgres-sopk
+
+networks:
+    postgres-sopk:
+        name: postgres-sopk
+
+volumes:
+    postgres-sopk:
+
