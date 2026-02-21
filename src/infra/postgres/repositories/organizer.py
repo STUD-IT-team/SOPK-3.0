@@ -13,11 +13,12 @@ class BaseOrganizerPostgresRepository(BaseRepository, BaseOrganizerRepository):
             await session.commit()
             return model
     
-    async def get(self, id: uuid.UUID) -> BaseOrganizer:
+    async def get(self, id: uuid.UUID) -> BaseOrganizer | None:
         async with self._db.get_session() as session:
             return await session.get(BaseOrganizer, id)
     
-    async def gettgid(self, tgid: int) -> BaseOrganizer:
+    async def gettgid(self, tgid: int) -> BaseOrganizer | None:
         async with self._db.get_session() as session:
             query = select(BaseOrganizer).where(BaseOrganizer.TgID == tgid).limit(1)
-            return await session.exec(query).first()
+            res =  await session.execute(query)
+            return res.scalars().first()

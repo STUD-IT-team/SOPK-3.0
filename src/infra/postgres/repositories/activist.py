@@ -20,6 +20,7 @@ class BaseActivistPostgresRepository(BaseRepository, BaseActivistRepository):
     async def gettgid(self, tgid: int) -> BaseActivist:
         async with self._db.get_session() as session:
             query = select(BaseActivist).where(BaseActivist.TgID == tgid).limit(1)
-            return await session.exec(query).first()
+            res =  await session.execute(query)
+            return res.scalars().first()
             
 
