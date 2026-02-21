@@ -29,7 +29,10 @@ CREATE TABLE IF NOT EXISTS organizers (
     id UUID PRIMARY KEY,
     tgid BIGINT NOT NULL,
     tgnick TEXT NOT NULL,
-    full_name TEXT NOT NULL
+    full_name TEXT NOT NULL,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS sessions (
