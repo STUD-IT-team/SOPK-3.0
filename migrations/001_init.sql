@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS timeslots (
 );
 
 CREATE TYPE sex AS ENUM ('male', 'female');
-CREATE TYPE department AS ENUM ('smm', 'cod', 'smm,cod');
+CREATE TYPE department AS ENUM ('smm', 'cod', 'smm_cod');
 
 CREATE TABLE IF NOT EXISTS activists (
     id UUID PRIMARY KEY,
