@@ -5,6 +5,7 @@ import logging
 
 from aiogram.types import Update, Message
 
+__all__ = ["LogMiddleware"]
 
 @inject
 class LogMiddleware:

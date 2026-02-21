@@ -12,13 +12,18 @@ class BaseModel(SQLModel):
     )
 
     CreatedAt: datetime = Field(
-        sa_column=Column(
-            DateTime(timezone=True), server_default=func.now(), name="created_at"
-        )
+        default_factory=datetime.now,
+         sa_column_kwargs={
+            "name": "created_at",
+            "server_default": func.now(),
+        },
     )
 
     UpdatedAt: datetime = Field(
-        sa_column=Column(
-            DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), name="updated_at"
-        )
+        default_factory=datetime.now,
+        sa_column_kwargs={
+            "name": "updated_at",
+            "server_default": func.now(),
+            "onupdate": func.now(),
+        },
     )

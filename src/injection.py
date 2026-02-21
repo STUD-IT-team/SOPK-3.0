@@ -12,7 +12,27 @@ import sys
 import logging
 import time
 
+from typing import List, Dict, Any
+
 from infra.postgres import BaseActivistPostgresRepository, BaseOrganizerPostgresRepository
+from infra.lst import MainOrganizerLstRepository
+from models import MainOrganizer
+
+
+def BuildMainOrgsRepository(mainorgs_cfg: List[Dict[str, Any]]) -> MainOrganizerLstRepository:
+    mainorgs = []
+    for mainorg in mainorgs_cfg:
+        mainorgs.append(MainOrganizer(
+            TgID=mainorg["id"],
+            TgNick=mainorg["nick"],
+            FullName=mainorg["fullname"]
+        ))
+    
+    repo = MainOrganizerLstRepository()
+    
+    for mainorg in mainorgs:
+        repo.save(mainorg)
+    return repo
 
 class Container(containers.DeclarativeContainer):
     config = providers.Configuration(yaml_files=["config/app.yaml"])
@@ -33,7 +53,7 @@ class Container(containers.DeclarativeContainer):
     mainDispatcher = providers.Singleton(Dispatcher, storage=MemoryStorage())
 
     dbconfig = providers.Resource(PostgresConfig, 
-        host=config.database.host, \
+        host=config.database.host,
         port=config.database.port,
         user=config.database.user,
         password=config.database.password,
@@ -45,3 +65,5 @@ class Container(containers.DeclarativeContainer):
 
     baseActivistRepository = providers.Factory(BaseActivistPostgresRepository, db=db)
     baseOrganizerRepository = providers.Factory(BaseOrganizerPostgresRepository, db=db)
+
+    mainOrganizerLstRepository = providers.Singleton(BuildMainOrgsRepository, mainorgs_cfg=config.mainorgs)
