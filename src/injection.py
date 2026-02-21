@@ -12,6 +12,8 @@ import sys
 import logging
 import time
 
+from infra.postgres import BaseActivistPostgresRepository, BaseOrganizerPostgresRepository
+
 class Container(containers.DeclarativeContainer):
     config = providers.Configuration(yaml_files=["config/app.yaml"])
 
@@ -40,3 +42,6 @@ class Container(containers.DeclarativeContainer):
     )
 
     db = providers.Singleton(PostgresDatabase, config=dbconfig)
+
+    baseActivistRepository = providers.Factory(BaseActivistPostgresRepository, db=db)
+    baseOrganizerRepository = providers.Factory(BaseOrganizerPostgresRepository, db=db)

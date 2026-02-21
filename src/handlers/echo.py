@@ -2,10 +2,6 @@ from aiogram import Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, ReplyKeyboardRemove
 
-from dependency_injector.wiring import inject, Provide
-from injection import Container
-
-
 EchoRouter = Router()
 
 @EchoRouter.message()
