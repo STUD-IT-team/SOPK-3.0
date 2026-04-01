@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS timeslots (
     id UUID PRIMARY KEY,
     startt TIMESTAMPTZ NOT NULL UNIQUE,
     endt TIMESTAMPTZ NOT NULL UNIQUE,
-    slotcnt INTEGER NOT NULL,
+    slotcnt INTEGER NOT NULL CHECK (slotcnt >= 0),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -15,21 +15,23 @@ CREATE TYPE department AS ENUM ('smm', 'cod', 'smm_cod');
 
 CREATE TABLE IF NOT EXISTS activists (
     id UUID PRIMARY KEY,
-    tgid BIGINT NOT NULL,
-    full_name TEXT NOT NULL,
-    sex sex NOT NULL,
-    phone TEXT NOT NULL,
-    timeslotid UUID REFERENCES timeslots(id),
-    department department NOT NULL,
+    username TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    full_name TEXT,
+    sex sex,
+    phone TEXT,
+    timeslotid UUID REFERENCES timeslots(id) DEFAULT NULL,
+    department department,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS organizers (
     id UUID PRIMARY KEY,
-    tgid BIGINT NOT NULL,
-    tgnick TEXT NOT NULL,
-    full_name TEXT NOT NULL,
+    username TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    full_name TEXT,
+    is_admin BOOLEAN NOT NULL,
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -37,6 +39,7 @@ CREATE TABLE IF NOT EXISTS organizers (
 
 CREATE TABLE IF NOT EXISTS sessions (
     id UUID PRIMARY KEY,
+    join_number INTEGER NOT NULL CHECK (join_number >= 0),
     startt TIMESTAMPTZ NOT NULL,
     endt TIMESTAMPTZ NULL,
     created_by UUID REFERENCES organizers(id),

@@ -2,22 +2,21 @@ from .base import BaseModel
 from sqlmodel import Field, SQLModel
 from enum import Enum
 from abc import ABC
-
 import uuid
 
-__all__ = ["BaseOrganizer", "BaseOrganizerRepository"]
+__all__ = ["Organizer", "OrganizerRepository"]
 
-class BaseOrganizer(BaseModel, table=True):
+class Organizer(BaseModel, table=True):
     __tablename__ = "organizers"
 
-    TgID: int = Field(
-        gt=0,
-        sa_column_kwargs={"name": "tgid"}
+    UserName: str = Field(
+        max_length=255,
+        unique=True,
+        sa_column_kwargs={"name": "username"}
     )
 
-    TgNick: str = Field(
-        max_length=255,
-        sa_column_kwargs={"name": "tgnick"}
+    PasswordHash: str = Field(
+        sa_column_kwargs={"name": "password_hash"}
     )
 
     FullName: str = Field(
@@ -25,12 +24,22 @@ class BaseOrganizer(BaseModel, table=True):
         sa_column_kwargs={"name": "full_name"}
     )
 
-class BaseOrganizerRepository(ABC):
-    async def get(self, id: uuid.UUID) -> BaseOrganizer:
+    IsAdmin: bool = Field(
+        sa_column_kwargs={"name": "is_admin"}
+    )
+
+class OrganizerRepository(ABC):
+    async def get(self, id: uuid.UUID) -> Organizer:
+        raise NotImplementedError
+
+    async def getUsername(self, username: str) -> Organizer:
         raise NotImplementedError
     
-    async def gettgid(self, tgid: int) -> BaseOrganizer:
+    async def save(self, model: BaseOrganizer) -> Organizer:
         raise NotImplementedError
     
-    async def save(self, model: BaseOrganizer) -> BaseOrganizer:    
+    async def delete(self, id: uuid.UUID) -> None:
+        raise NotImplementedError
+
+    async def getAll(self) -> List[Organizer]:
         raise NotImplementedError
