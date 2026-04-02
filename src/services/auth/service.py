@@ -59,6 +59,7 @@ class AuthService:
         async with self.uow as uow:
             rep = uow.get(ActivistRepository)
             await rep.save(activist)
+            await uow.commit()
 
         return AuthUser(
             UserID=activist.ID,
@@ -72,7 +73,7 @@ class AuthService:
         except DecodeSecurityError as e:
             raise IncorrectCredentialsError(e)
 
-        user, role = self._ger_by_id(user_id)
+        user, role = await self._get_by_id(user_id)
         if user is None or role is None:
             raise UserIDNotFound(f"{user_id} not found")
 
@@ -83,7 +84,7 @@ class AuthService:
         )
 
     async def Me(self, auser: AuthUser) -> MeResponse:
-        user, role = self._ger_by_id(auser.UserID)
+        user, role = await self._get_by_id(auser.UserID)
         if user is None or role is None:
             raise UserIDNotFound(f"{auser.UserID} not found")
 
@@ -115,7 +116,7 @@ class AuthService:
 
         return self._define_role(activist, organizer)
 
-    async def _ger_by_id(self, id: UUID) -> Tuple[Activist | Organizer | None, AuthRole | None]:
+    async def _get_by_id(self, id: UUID) -> Tuple[Activist | Organizer | None, AuthRole | None]:
         async with self.uow as uow:
             activist = await uow.get(ActivistRepository).get(id)
             organizer = await uow.get(OrganizerRepository).get(id)

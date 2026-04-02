@@ -41,7 +41,7 @@ async def register(
     auth_service: AuthService = Depends(Provide[Container.authService])
 ):
     try:
-        return await auth_service.Register(dto)
+        await auth_service.Register(dto)
 
     except AuthValidationError as e:
         raise HTTPException(
