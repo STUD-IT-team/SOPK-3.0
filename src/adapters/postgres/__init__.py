@@ -1,1 +1,3 @@
-from .repositories import *
+from .repositories.activist import SqlAlchemyActivistRepository
+from .repositories.organizer import SqlAlchemyOrganizerRepository
+from .uow import SqlAlchemyUnitOfWork

@@ -1,4 +1,4 @@
-from .base import BaseModel
+from .base import BaseModel, BaseModelRepository
 from sqlmodel import Field, Relationship
 from typing import List, Optional
 from datetime import datetime
@@ -36,7 +36,7 @@ class SessionOrganizer(BaseModel, table=True):
         sa_column_kwargs={"name": "organizerid"}
     )
 
-    Session: Optional["Session"] = Relationship(back_populates="Activists")
+    Session: Optional["Session"] = Relationship(back_populates="Organizers")
 
 
 class Assessment(BaseModel, table=True):
@@ -120,16 +120,16 @@ class Session(BaseModel, table=True):
         sa_column_kwargs={"name": "created_by"}
     )
 
-    Organizers: List[SessionOrganizer] = Relationship(back_populates="Sessions")
-    Activists: List[SessionActivist] = Relationship(back_populates="Sessions")
+    Organizers: List[SessionOrganizer] = Relationship(back_populates="Session")
+    Activists: List[SessionActivist] = Relationship(back_populates="Session")
 
     Assessments: List[Assessment] = Relationship(back_populates="Session")
 
-class SessionRepository(ABC):
-    async def get(self, id: uuid.UUID) -> Session:
+class SessionRepository(BaseModelRepository):
+    async def get(self, id: uuid.UUID, for_update: bool = False) -> Session:
         raise NotImplementedError
 
-    async def getAll(self) -> List[Session]:
+    async def getAll(self, for_update: bool = False) -> List[Session]:
         raise NotImplementedError
 
     async def save(self, model: Session) -> Session:

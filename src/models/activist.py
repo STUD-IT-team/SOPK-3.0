@@ -1,9 +1,10 @@
-from .base import BaseModel
+from .base import BaseModel, BaseModelRepository
 from sqlmodel import Field, SQLModel
 from enum import Enum
 from abc import ABC
 from pydantic_extra_types.phone_numbers import PhoneNumber
 from typing import List
+from uuid import UUID
 
 import uuid
 
@@ -50,12 +51,16 @@ class Activist(BaseModel, table=True):
         sa_column_kwargs={"name": "department"}
     )
 
+    TimeslotID: UUID | None = Field(
+        sa_column_kwargs={"name": "timeslotid"}
+    )
 
-class ActivistRepository(ABC):
-    async def get(self, id: uuid.UUID) -> Activist:
+
+class ActivistRepository(BaseModelRepository):
+    async def get(self, id: uuid.UUID, for_update: bool = False) -> Activist:
         raise NotImplementedError
 
-    async def getUsername(self, username: str) -> Activist:
+    async def getUsername(self, username: str, for_update: bool = False) -> Activist:
         raise NotImplementedError
     
     async def save(self, model: Activist) -> Activist:
@@ -64,7 +69,7 @@ class ActivistRepository(ABC):
     async def delete(self, id: uuid.UUID) -> None:
         raise NotImplementedError
 
-    async def getAll(self) -> List[Activist]:
+    async def getAll(self, for_update: bool = False) -> List[Activist]:
         raise NotImplementedError
     
     

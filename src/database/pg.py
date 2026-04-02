@@ -35,6 +35,8 @@ class PostgresDatabase:
                 bind=self._engine,
                 class_=AsyncSession,
                 expire_on_commit=False,
+                autocommit=False,
+                autoflush=False,
             )
 
     @asynccontextmanager

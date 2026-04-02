@@ -3,3 +3,4 @@ from .organizer import *
 from .timeslot import *
 from .session import *
 from .timeslot import *
+from .common.uow import *

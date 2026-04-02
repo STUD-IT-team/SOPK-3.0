@@ -1,6 +1,7 @@
 from sqlmodel import Field, SQLModel
 from sqlalchemy import DateTime, Column, func
 from datetime import datetime
+from abc import ABC
 import uuid
 
 
@@ -27,3 +28,7 @@ class BaseModel(SQLModel):
             "onupdate": func.now(),
         },
     )
+
+
+class BaseModelRepository(ABC):
+    pass

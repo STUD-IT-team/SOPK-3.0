@@ -1,4 +1,4 @@
-from .base import BaseModel
+from .base import BaseModel, BaseModelRepository
 from sqlmodel import Field, SQLModel
 from abc import ABC
 import uuid
@@ -24,11 +24,11 @@ class Timeslot(BaseModel, table=True):
         sa_column_kwargs={"name": "slotcnt"}
     )
 
-class TimeslotRepository(ABC):
-    async def get(self, id: uuid.UUID) -> Timeslot:
+class TimeslotRepository(BaseModelRepository):
+    async def get(self, id: uuid.UUID, for_update: bool = False) -> Timeslot:
         raise NotImplementedError
 
-    async def getAll(self) -> List[Timeslot]:
+    async def getAll(self, for_update: bool = False) -> List[Timeslot]:
         raise NotImplementedError
 
     async def save(self, model: Timeslot) -> Timeslot:

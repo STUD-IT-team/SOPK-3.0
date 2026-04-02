@@ -1,4 +1,4 @@
-from .base import BaseModel
+from .base import BaseModel, BaseModelRepository
 from sqlmodel import Field, SQLModel
 from abc import ABC
 from typing import List
@@ -29,11 +29,11 @@ class Organizer(BaseModel, table=True):
         default=False
     )
 
-class OrganizerRepository(ABC):
-    async def get(self, id: uuid.UUID) -> Organizer:
+class OrganizerRepository(BaseModelRepository):
+    async def get(self, id: uuid.UUID, for_update: bool = False) -> Organizer:
         raise NotImplementedError
 
-    async def getUsername(self, username: str) -> Organizer:
+    async def getUsername(self, username: str, for_update: bool = False) -> Organizer:
         raise NotImplementedError
     
     async def save(self, model: Organizer) -> Organizer:
@@ -42,5 +42,5 @@ class OrganizerRepository(ABC):
     async def delete(self, id: uuid.UUID) -> None:
         raise NotImplementedError
 
-    async def getAll(self) -> List[Organizer]:
+    async def getAll(self, for_update: bool = False) -> List[Organizer]:
         raise NotImplementedError

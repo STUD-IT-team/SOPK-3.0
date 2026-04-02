@@ -2,6 +2,7 @@ from typing import Tuple
 from uuid import UUID
 
 from  models import ActivistRepository, OrganizerRepository, Activist, Organizer
+from models.common.uow import UnitOfWork
 from .coder import AuthCredentialsEncoder, DecodeSecurityError
 from .password import AuthInfoValidationService
 from .hasher import PasswordHasher
@@ -12,17 +13,15 @@ __all__ = ["AuthService", "UsernameTakenError", "UsernameNotFound", "UserIDNotFo
 
 class AuthService:
     def __init__(self,
-                 activist_repository: ActivistRepository,
-                 organization_repository: OrganizerRepository,
+                 uow: UnitOfWork,
                  hasher: PasswordHasher,
                  encoder: AuthCredentialsEncoder,
                  validator: AuthInfoValidationService
     ):
-        self.arepo = activist_repository
-        self.orepo = organization_repository
         self.hasher = hasher
         self.encoder = encoder
         self.validator = validator
+        self.uow = uow
 
 
     async def Login(self, dto: LoginDto) -> str:
@@ -57,7 +56,9 @@ class AuthService:
             PasswordHash=hashed,
         )
 
-        await self.arepo.save(activist)
+        async with self.uow as uow:
+            rep = uow.get(ActivistRepository)
+            await rep.save(activist)
 
         return AuthUser(
             UserID=activist.ID,
@@ -107,16 +108,19 @@ class AuthService:
                 role=role
             )
 
-
-
     async def _get_by_username(self, username: str) -> Tuple[Activist | Organizer | None, AuthRole | None]:
-        activist = await self.arepo.getUsername(username)
-        organizer = await self.orepo.getUsername(username)
+        async with self.uow as uow:
+            activist = await uow.get(ActivistRepository).getUsername(username)
+            organizer = await uow.get(OrganizerRepository).getUsername(username)
 
         return self._define_role(activist, organizer)
 
     async def _ger_by_id(self, id: UUID) -> Tuple[Activist | Organizer | None, AuthRole | None]:
-        activist = self.arepo
+        async with self.uow as uow:
+            activist = await uow.get(ActivistRepository).get(id)
+            organizer = await uow.get(OrganizerRepository).get(id)
+
+        return self._define_role(activist, organizer)
 
 
     @staticmethod
