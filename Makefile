@@ -4,7 +4,7 @@ DOCKER:=docker
 COMPOSE_DEV:=deployment/docker-compose.dev.yaml
 COMPOSE_PROD:=deployment/docker-compose.yaml
 COMPOSE_ENV:=deployment/compose.env
-CONTAINERS:=db-sopk migrator-sopk bot-sopk
+CONTAINERS:=db-sopk migrator-sopk
 
 REQUIREMENTS:=./src/requirements.txt
 VENVDIR:=./venv

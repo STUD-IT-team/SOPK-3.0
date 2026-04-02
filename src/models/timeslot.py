@@ -2,6 +2,8 @@ from .base import BaseModel
 from sqlmodel import Field, SQLModel
 from abc import ABC
 import uuid
+from  datetime import datetime
+from typing import List
 
 __all__ = ["Timeslot", "TimeslotRepository", "TimeslotAlreadyBusy", "TimeslotNotFound", "TimeslotNotAvailable"]
 

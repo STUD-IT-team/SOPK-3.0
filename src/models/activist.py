@@ -3,6 +3,7 @@ from sqlmodel import Field, SQLModel
 from enum import Enum
 from abc import ABC
 from pydantic_extra_types.phone_numbers import PhoneNumber
+from typing import List
 
 import uuid
 
@@ -31,21 +32,21 @@ class Activist(BaseModel, table=True):
         sa_column_kwargs={"name": "password_hash"}
     )
 
-    FullName: str = Field(
+    FullName: str | None = Field(
         max_length=255,
         sa_column_kwargs={"name": "full_name"}
     )
 
-    Gender: Sex = Field(
+    Gender: Sex | None = Field(
         sa_column_kwargs={"name": "sex"}
     )
 
-    Phone: PhoneNumber = Field(
+    Phone: PhoneNumber | None = Field(
         max_length=255,
         sa_column_kwargs={"name": "phone"}
     )
 
-    PreferredDepartment: Department = Field(
+    PreferredDepartment: Department | None = Field(
         sa_column_kwargs={"name": "department"}
     )
 
@@ -57,7 +58,7 @@ class ActivistRepository(ABC):
     async def getUsername(self, username: str) -> Activist:
         raise NotImplementedError
     
-    async def save(self, model: BaseActivist) -> Activist:
+    async def save(self, model: Activist) -> Activist:
         raise NotImplementedError
     
     async def delete(self, id: uuid.UUID) -> None:

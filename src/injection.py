@@ -1,13 +1,17 @@
 from dependency_injector import containers, providers
-from database.postgres import PostgresDatabase, PostgresConfig
+from database import PostgresDatabase, PostgresConfig
+from services.auth import AuthCredentialsEncoder, AuthInfoValidationService, AuthService
+from services.auth.hasher import PasswordHasher
+from adapters.bcrypt import  BcryptPasswordHasher
+from adapters.jwt import JwtAuthCredentialsEncoder
 
 from utils.logger.get import getLogger
 
 import sys
 import logging
-import time
 
-from typing import List, Dict, Any
+from models import ActivistRepository, SessionRepository, TimeslotRepository, OrganizerRepository
+
 class Container(containers.DeclarativeContainer):
     config = providers.Configuration(yaml_files=["config/app.yaml"])
 
@@ -21,6 +25,16 @@ class Container(containers.DeclarativeContainer):
 
     logger = providers.Factory(getLogger, name="sopkbot", **LOGGING_KWARGS)
 
+    passwordHasher: PasswordHasher = providers.Singleton(BcryptPasswordHasher)
+    authCredentialsEncoder: AuthCredentialsEncoder = providers.Singleton(
+        JwtAuthCredentialsEncoder,
+        secret=config.jwt.secret,
+        algorithm="HS256",
+        expires_minutes=config.jwt.expire_minutes,
+    )
+    authInfoValidationService: AuthInfoValidationService = providers.Singleton(AuthInfoValidationService)
+
+
     dbconfig = providers.Resource(PostgresConfig, 
         host=config.database.host,
         port=config.database.port,
@@ -31,3 +45,16 @@ class Container(containers.DeclarativeContainer):
     )
 
     db = providers.Singleton(PostgresDatabase, config=dbconfig)
+
+    activistRepository: ActivistRepository = providers.Factory(ActivistRepository)
+    sessionRepository: SessionRepository = providers.Factory(SessionRepository)
+    timeslotRepository: TimeslotRepository = providers.Factory(TimeslotRepository)
+    organizerRepository: OrganizerRepository = providers.Factory(OrganizerRepository)
+
+    authService: AuthService = providers.Singleton(AuthService,
+        activist_repository = activistRepository,
+        organization_repository=organizerRepository,
+        hasher=passwordHasher,
+        encoder=authCredentialsEncoder,
+        validator=authInfoValidationService,
+    )

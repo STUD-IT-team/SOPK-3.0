@@ -1,7 +1,7 @@
 from .base import BaseModel
 from sqlmodel import Field, SQLModel
-from enum import Enum
 from abc import ABC
+from typing import List
 import uuid
 
 __all__ = ["Organizer", "OrganizerRepository"]
@@ -19,13 +19,14 @@ class Organizer(BaseModel, table=True):
         sa_column_kwargs={"name": "password_hash"}
     )
 
-    FullName: str = Field(
+    FullName: str | None = Field(
         max_length=255,
         sa_column_kwargs={"name": "full_name"}
     )
 
     IsAdmin: bool = Field(
-        sa_column_kwargs={"name": "is_admin"}
+        sa_column_kwargs={"name": "is_admin"},
+        default=False
     )
 
 class OrganizerRepository(ABC):
@@ -35,7 +36,7 @@ class OrganizerRepository(ABC):
     async def getUsername(self, username: str) -> Organizer:
         raise NotImplementedError
     
-    async def save(self, model: BaseOrganizer) -> Organizer:
+    async def save(self, model: Organizer) -> Organizer:
         raise NotImplementedError
     
     async def delete(self, id: uuid.UUID) -> None:

@@ -1,5 +1,5 @@
 
-from database.postgres import PostgresDatabase
+from database import PostgresDatabase
 
 
 class BaseRepository:

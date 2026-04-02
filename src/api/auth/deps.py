@@ -1,0 +1,43 @@
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
+from dependency_injector.wiring import inject, Provide
+from injection import Container
+
+from services.auth import AuthService, IncorrectCredentialsError, UserIDNotFound
+from services.auth import AuthUser, AuthRole
+
+security = HTTPBearer()
+
+__all__ = ["AuthCurrentUser", "AuthRequireRole"]
+
+@inject
+async def AuthCurrentUser(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    auth_service: AuthService = Depends(Provide[Container.authService])
+) -> AuthUser:
+    try:
+        return await auth_service.Auth(credentials.credentials)
+
+    except IncorrectCredentialsError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials"
+        )
+
+    except UserIDNotFound:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+def AuthRequireRole(required_role: AuthRole):
+    async def role_checker(user: AuthUser = Depends(AuthCurrentUser)) -> AuthUser:
+        if user.Role != required_role:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Forbidden"
+            )
+        return user
+
+    return role_checker

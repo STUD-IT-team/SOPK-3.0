@@ -2,6 +2,7 @@ from .base import BaseModel
 from sqlmodel import Field, Relationship
 from typing import List, Optional
 from datetime import datetime
+from abc import ABC
 import uuid
 
 
