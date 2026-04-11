@@ -163,22 +163,21 @@ async def main():
         print(f"Error connecting to database: {e}")
         return
     
-    try:
-        await create_rows(conn, 'organizers', organizers_data)
-        await create_rows(conn, 'timeslots', timeslots_data)
-        await create_rows(conn, 'activists', activists_data)
-        await create_rows(conn, 'sessions', sessions_data)
-        await create_rows(conn, 'assessments', assessment_data)
-        await create_rows(conn, 'sessions_activists', sa_data)
-        await create_rows(conn, 'sessions_organizers', so_data)
-    except Exception as e:
-        await conn.execute('TRUNCATE TABLE organizers, timeslots, activists, sessions, \
-                           assessments, sessions_activists, sessions_organizers;')
-        raise e
+    async with conn.transaction():
+        try:
+            await create_rows(conn, 'organizers', organizers_data)
+            await create_rows(conn, 'timeslots', timeslots_data)
+            await create_rows(conn, 'activists', activists_data)
+            await create_rows(conn, 'sessions', sessions_data)
+            await create_rows(conn, 'assessments', assessment_data)
+            await create_rows(conn, 'sessions_activists', sa_data)
+            await create_rows(conn, 'sessions_organizers', so_data)
+        except Exception as e:
+            print(f"Error creating mock data. Transaction will be rolled back. Error: {e}")
+        else:
+            print('Mock data created')
     
     await conn.close()
-    
-    print('Mock data created')
 
 
 if __name__ == "__main__":
