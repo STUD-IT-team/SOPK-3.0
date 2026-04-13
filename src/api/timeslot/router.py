@@ -5,11 +5,11 @@ from injection import Container
 
 from uuid import UUID
 
-from api import AuthCurrentUser, AuthRequireRole
+from api import AuthCurrentUser, AuthRequireRoles
 
 from .dto import TimeslotResponse, AllTimeslotResponse, CreateTimeslotDto
 
-from api import AuthCurrentUser, AuthRequireRole
+from api import AuthCurrentUser, AuthRequireRoles
 from services.auth import AuthUser, AuthRole
 
 router = APIRouter(prefix="/timeslot", tags=["Timeslot"])
@@ -23,7 +23,7 @@ router = APIRouter(prefix="/timeslot", tags=["Timeslot"])
 )
 @inject
 async def getAll(
-    user: AuthUser = Depends(AuthRequireRole(AuthRole.Activist)),
+    user: AuthUser = Depends(AuthRequireRoles(AuthRole.Activist)),
 ):
     pass
 
@@ -37,7 +37,7 @@ async def getAll(
 @inject
 async def get(
     id: UUID,
-    user: AuthUser = Depends(AuthRequireRole(AuthRole.Activist)),
+    user: AuthUser = Depends(AuthRequireRoles(AuthRole.Activist)),
 ):
     pass
 
@@ -51,7 +51,7 @@ async def get(
 @inject
 async def post(
     data: CreateTimeslotDto,
-    user: AuthUser = Depends(AuthRequireRole(AuthRole.Activist)),
+    user: AuthUser = Depends(AuthRequireRoles(AuthRole.Activist)),
 ):
     pass
 
@@ -64,7 +64,7 @@ async def post(
 @inject
 async def delete(
     id: UUID,
-    user: AuthUser = Depends(AuthRequireRole(AuthRole.Admin)),
+    user: AuthUser = Depends(AuthRequireRoles(AuthRole.Admin)),
 ):
     pass
 
@@ -77,6 +77,6 @@ async def delete(
 )
 @inject
 async def excel(
-    user: AuthUser = Depends(AuthRequireRole(AuthRole.Admin)),
+    user: AuthUser = Depends(AuthRequireRoles(AuthRole.Admin)),
 ):
     pass

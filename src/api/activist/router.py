@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 
 from dependency_injector.wiring import inject, Provide
 
@@ -9,7 +9,7 @@ from models import ActivistRepository
 
 from uuid import UUID
 
-from api import AuthRequireRole
+from api import AuthRequireRoles
 from services.auth import AuthUser, AuthRole
 
 router = APIRouter(prefix="/activist", tags=["Activist"])
@@ -21,7 +21,7 @@ router = APIRouter(prefix="/activist", tags=["Activist"])
     response_model_by_alias=True,
     status_code=status.HTTP_200_OK,
     description="Get all activists",
-    dependencies=[Depends(AuthRequireRole(AuthRole.Organizer))]
+    dependencies=[Depends(AuthRequireRoles(AuthRole.Organizer))]
 )
 @inject
 async def getAll(uow: UnitOfWork = Depends(Provide[Container.uow])):
@@ -32,20 +32,31 @@ async def getAll(uow: UnitOfWork = Depends(Provide[Container.uow])):
 
 
 @router.get(
-    "/:id",
+    "/{id}",
     response_model=ActivistResponse,
     status_code=status.HTTP_200_OK,
     description="Get an activist. Available to activist itself or organizer",
 )
 @inject
-def getById(
+async def getById(
         id: UUID,
-        user: AuthUser = Depends(AuthRequireRole(AuthRole.Activist)),
+        user: AuthUser = Depends(AuthRequireRoles(AuthRole.Activist, AuthRole.Organizer)),
+        uow: UnitOfWork = Depends(Provide[Container.uow]),
 ):
-    pass
+    async with uow as uow:
+        activist = await uow.get(ActivistRepository).get(id)
+    
+    if user.Role == AuthRole.Activist and user.UserID != activist.ID:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Forbidden"
+            )
+    
+    return activist
+        
 
 @router.put(
-    "/:id/data",
+    "/{id}/data",
     status_code=status.HTTP_200_OK,
     response_model=ActivistResponse,
     description="Update an activist information (form). Available to activist itself only",
@@ -54,12 +65,12 @@ def getById(
 def updateData(
         id: UUID,
         data: UpdateActivistDataDto,
-        user: AuthUser = Depends(AuthRequireRole(AuthRole.Activist)),
+        user: AuthUser = Depends(AuthRequireRoles(AuthRole.Activist)),
 ):
     pass
 
 @router.put(
-    "/:id/timeslot",
+    "/{id}/timeslot",
     status_code=status.HTTP_200_OK,
     response_model=ActivistResponse,
     description="Update (or firstly set) activist's timeslot. Available to activist itself or organizer",
@@ -68,24 +79,24 @@ def updateData(
 def updateTimeslot(
         id: UUID,
         data: UpdateActivistTimeslotDto,
-        user: AuthUser = Depends(AuthRequireRole(AuthRole.Activist)),
+        user: AuthUser = Depends(AuthRequireRoles(AuthRole.Activist)),
 ):
     pass
 
 @router.delete(
-    "/:id",
+    "/{id}",
     status_code=status.HTTP_200_OK,
     description="Delete an activist. Available to admin only",
 )
 @inject
 def delete(
         id: UUID,
-        user: AuthUser = Depends(AuthRequireRole(AuthRole.Admin)),
+        user: AuthUser = Depends(AuthRequireRoles(AuthRole.Admin)),
 ):
     pass
 
 @router.get(
-    "/:id/session",
+    "/{id}/session",
     response_model=ActivistSessionResponse | None,
     status_code=status.HTTP_200_OK,
     description="Get activist's session, if he's in one of them",
@@ -93,13 +104,13 @@ def delete(
 @inject
 def getInSession(
         id: UUID,
-        user: AuthUser = Depends(AuthRequireRole(AuthRole.Activist)),
+        user: AuthUser = Depends(AuthRequireRoles(AuthRole.Activist)),
 ):
     pass
 
 
 @router.put(
-    "/:id/join/:sessionId",
+    "/{id}/join/{sessionId}",
     response_model=ActivistSessionResponse,
     status_code=status.HTTP_200_OK,
     description="Join a session. Available to activist itself only",
@@ -108,7 +119,7 @@ def getInSession(
 def joinSession(
         id: UUID,
         sessionId: UUID,
-        user: AuthUser = Depends(AuthRequireRole(AuthRole.Activist)),
+        user: AuthUser = Depends(AuthRequireRoles(AuthRole.Activist)),
 ):
     pass
 

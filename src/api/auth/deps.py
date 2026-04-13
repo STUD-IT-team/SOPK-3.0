@@ -9,7 +9,7 @@ from services.auth import AuthUser, AuthRole
 
 security = HTTPBearer()
 
-__all__ = ["AuthCurrentUser", "AuthRequireRole"]
+__all__ = ["AuthCurrentUser", "AuthRequireRoles"]
 
 @inject
 async def AuthCurrentUser(
@@ -31,9 +31,9 @@ async def AuthCurrentUser(
             detail="User not found"
         )
 
-def AuthRequireRole(required_role: AuthRole):
+def AuthRequireRoles(*required_roles: AuthRole):
     async def role_checker(user: AuthUser = Depends(AuthCurrentUser)) -> AuthUser:
-        if user.Role != required_role:
+        if user.Role not in required_roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Forbidden"
