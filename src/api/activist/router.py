@@ -1,29 +1,35 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 
 from dependency_injector.wiring import inject, Provide
 
 from api.activist.dto import ActivistResponse, AllActivistResponse, UpdateActivistDataDto, ActivistSessionResponse, \
     UpdateActivistTimeslotDto
-from injection import Container
+from injection import Container, UnitOfWork
+from models import ActivistRepository
 
 from uuid import UUID
 
-from api import AuthCurrentUser, AuthRequireRole
+from api import AuthRequireRole
 from services.auth import AuthUser, AuthRole
 
 router = APIRouter(prefix="/activist", tags=["Activist"])
 
+
 @router.get(
     "/",
     response_model=AllActivistResponse,
+    response_model_by_alias=True,
     status_code=status.HTTP_200_OK,
     description="Get all activists",
+    dependencies=[Depends(AuthRequireRole(AuthRole.Organizer))]
 )
 @inject
-def getAll(
-        user: AuthUser = Depends(AuthRequireRole(AuthRole.Organizer)),
-):
-    pass
+async def getAll(uow: UnitOfWork = Depends(Provide[Container.uow])):
+    async with uow as uow:
+        activists = await uow.get(ActivistRepository).getAll()
+    
+    return {"activists": activists}
+
 
 @router.get(
     "/:id",

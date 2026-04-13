@@ -2,31 +2,43 @@ import datetime
 from uuid import UUID
 from datetime import datetime
 
-from pydantic import BaseModel as PydanticBaseModel
+from pydantic import BaseModel as PydanticBaseModel, Field, ConfigDict
 from typing import List
 
 from models import Sex, Department
 
 class ActivistResponse(PydanticBaseModel):
-    id: UUID
-    username: str
-    full_name: str | None
-    sex: Sex | None
-    department: Department | None
-    phone: str | None
-    timeslot_id: UUID | None
+    ID: UUID = Field(alias='id')
+    UserName: str = Field(alias='username')
+    FullName: str | None = Field(alias='full_name')
+    Gender: Sex | None = Field(alias='sex')
+    PreferredDepartment: Department | None = Field(alias='department')
+    Phone: str | None = Field(alias='phone')
+    TimeslotID: UUID | None = Field(alias='timeslot_id')
+    
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
 
 class AllActivistResponse(PydanticBaseModel):
     activists: List[ActivistResponse]
 
 class UpdateActivistDataDto(PydanticBaseModel):
-    full_name: str
-    sex: Sex
-    department: Department
-    phone: str
+    FullName: str | None = Field(alias='full_name')
+    Gender: Sex | None = Field(alias='sex')
+    PreferredDepartment: Department | None = Field(alias='department')
+    Phone: str | None = Field(alias='phone')
+    
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
 
 class UpdateActivistTimeslotDto(PydanticBaseModel):
-    timeslot_id: UUID
+    TimeslotID: UUID | None = Field(alias='timeslot_id')
+    
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
 
 class ActivistSessionResponse(PydanticBaseModel):
     session_id: str
