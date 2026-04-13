@@ -57,5 +57,5 @@ class UpdateAssessmentDto(PydanticBaseModel):
     worthy: bool
     comment: str
 
-class CanEndResponse:
+class CanEndResponse(PydanticBaseModel):
     ok: bool
