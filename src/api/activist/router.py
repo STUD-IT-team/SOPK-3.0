@@ -85,15 +85,14 @@ def updateTimeslot(
 
 @router.delete(
     "/{id}",
+    dependencies=[Depends(AuthRequireRoles(AuthRole.Admin))],
     status_code=status.HTTP_200_OK,
     description="Delete an activist. Available to admin only",
 )
 @inject
-def delete(
-        id: UUID,
-        user: AuthUser = Depends(AuthRequireRoles(AuthRole.Admin)),
-):
-    pass
+async def delete(id: UUID, uow: UnitOfWork = Depends(Provide[Container.uow])):
+    async with uow as uow:
+        await uow.get(ActivistRepository).delete(id)
 
 @router.get(
     "/{id}/session",
