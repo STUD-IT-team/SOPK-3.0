@@ -1,3 +1,4 @@
+from uuid import UUID
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
@@ -9,7 +10,7 @@ from services.auth import AuthUser, AuthRole
 
 security = HTTPBearer()
 
-__all__ = ["AuthCurrentUser", "AuthRequireRoles"]
+__all__ = ["AuthCurrentUser", "AuthRequireRoles", "AuthRequireRolesOrUserItself", "OrganizerOrActivistItself"]
 
 @inject
 async def AuthCurrentUser(
@@ -41,3 +42,22 @@ def AuthRequireRoles(*required_roles: AuthRole):
         return user
 
     return role_checker
+
+
+def AuthRequireRolesOrUserItself(*required_roles: AuthRole, owner_role: AuthRole):
+    async def role_checker(
+        id: UUID, 
+        user: AuthUser = Depends(AuthRequireRoles(*required_roles, owner_role))
+    ) -> AuthUser:
+        if (user.Role == owner_role and user.UserID == id) or (user.Role in required_roles):
+            return user
+        
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden"
+        )
+
+    return role_checker
+
+
+OrganizerOrActivistItself = AuthRequireRolesOrUserItself(AuthRole.Organizer, owner_role=AuthRole.Activist)

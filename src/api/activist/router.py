@@ -9,7 +9,7 @@ from models import ActivistRepository
 
 from uuid import UUID
 
-from api import AuthRequireRoles
+from api import AuthRequireRoles, OrganizerOrActivistItself, AuthRequireRolesOrUserItself
 from services.auth import AuthUser, AuthRole
 
 router = APIRouter(prefix="/activist", tags=["Activist"])
@@ -18,7 +18,6 @@ router = APIRouter(prefix="/activist", tags=["Activist"])
 @router.get(
     "/",
     response_model=AllActivistResponse,
-    response_model_by_alias=True,
     status_code=status.HTTP_200_OK,
     description="Get all activists",
     dependencies=[Depends(AuthRequireRoles(AuthRole.Organizer))]
@@ -33,6 +32,7 @@ async def getAll(uow: UnitOfWork = Depends(Provide[Container.uow])):
 
 @router.get(
     "/{id}",
+    dependencies=[Depends(OrganizerOrActivistItself)],
     response_model=ActivistResponse,
     status_code=status.HTTP_200_OK,
     description="Get an activist. Available to activist itself or organizer",
@@ -40,17 +40,10 @@ async def getAll(uow: UnitOfWork = Depends(Provide[Container.uow])):
 @inject
 async def getById(
         id: UUID,
-        user: AuthUser = Depends(AuthRequireRoles(AuthRole.Activist, AuthRole.Organizer)),
         uow: UnitOfWork = Depends(Provide[Container.uow]),
 ):
     async with uow as uow:
         activist = await uow.get(ActivistRepository).get(id)
-    
-    if user.Role == AuthRole.Activist and user.UserID != activist.ID:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Forbidden"
-            )
     
     return activist
         
@@ -62,12 +55,17 @@ async def getById(
     description="Update an activist information (form). Available to activist itself only",
 )
 @inject
-def updateData(
-        id: UUID,
+async def updateData(
         data: UpdateActivistDataDto,
-        user: AuthUser = Depends(AuthRequireRoles(AuthRole.Activist)),
+        user: AuthUser = Depends(AuthRequireRolesOrUserItself(owner_role=AuthRole.Activist)),
+        uow: UnitOfWork = Depends(Provide[Container.uow]),
 ):
-    pass
+    async with uow as uow:
+        activist = await uow.get(ActivistRepository).get(user.UserID)
+        activist.sqlmodel_update(data)
+        
+    return activist
+
 
 @router.put(
     "/{id}/timeslot",
@@ -83,6 +81,7 @@ def updateTimeslot(
 ):
     pass
 
+
 @router.delete(
     "/{id}",
     dependencies=[Depends(AuthRequireRoles(AuthRole.Admin))],
@@ -93,6 +92,7 @@ def updateTimeslot(
 async def delete(id: UUID, uow: UnitOfWork = Depends(Provide[Container.uow])):
     async with uow as uow:
         await uow.get(ActivistRepository).delete(id)
+
 
 @router.get(
     "/{id}/session",
@@ -121,4 +121,3 @@ def joinSession(
         user: AuthUser = Depends(AuthRequireRoles(AuthRole.Activist)),
 ):
     pass
-
