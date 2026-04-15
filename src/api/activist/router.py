@@ -50,18 +50,19 @@ async def getById(
 
 @router.put(
     "/{id}/data",
+    dependencies=[Depends(AuthRequireRolesOrUserItself(owner_role=AuthRole.Activist))],
     status_code=status.HTTP_200_OK,
     response_model=ActivistResponse,
     description="Update an activist information (form). Available to activist itself only",
 )
 @inject
 async def updateData(
+        id: UUID, 
         data: UpdateActivistDataDto,
-        user: AuthUser = Depends(AuthRequireRolesOrUserItself(owner_role=AuthRole.Activist)),
         uow: UnitOfWork = Depends(Provide[Container.uow]),
 ):
     async with uow as uow:
-        activist = await uow.get(ActivistRepository).get(user.UserID)
+        activist = await uow.get(ActivistRepository).get(id, for_update=True)
         activist.sqlmodel_update(data)
         
     return activist
