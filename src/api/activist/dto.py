@@ -41,8 +41,10 @@ class UpdateActivistTimeslotDto(PydanticBaseModel):
     )
 
 class ActivistSessionResponse(PydanticBaseModel):
-    session_id: str
-    join_number: int
-    start_time: datetime | None
-
-
+    ID: UUID = Field(alias='session_id')
+    JoinNumber: int = Field(alias='join_number')
+    StartTime: datetime | None = Field(alias='start_time')
+    
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )

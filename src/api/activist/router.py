@@ -117,16 +117,20 @@ async def delete(id: UUID, uow: UnitOfWork = Depends(Provide[Container.uow])):
 
 @router.get(
     "/{id}/session",
+    dependencies=[Depends(AuthRequireRolesOrUserItself(owner_role=AuthRole.Activist))],
     response_model=ActivistSessionResponse | None,
     status_code=status.HTTP_200_OK,
     description="Get activist's session, if he's in one of them",
 )
 @inject
-def getInSession(
+async def getInSession(
         id: UUID,
-        user: AuthUser = Depends(AuthRequireRoles(AuthRole.Activist)),
+        uow: UnitOfWork = Depends(Provide[Container.uow]),
 ):
-    pass
+    async with uow as uow:
+        activeSession = await uow.get(ActivistRepository).getActiveSession(id)
+    
+    return activeSession
 
 
 @router.put(
