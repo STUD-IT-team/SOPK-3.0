@@ -129,7 +129,7 @@ class SessionRepository(BaseModelRepository):
     async def get(self, id: uuid.UUID, for_update: bool = False) -> Session:
         raise NotImplementedError
 
-    async def getByJoinNumber(self, join_number: int) -> Session:
+    async def getByJoinNumber(self, join_number: int, for_update: bool = False) -> Session:
         raise NotImplementedError
 
     async def getAll(self, for_update: bool = False) -> List[Session]:

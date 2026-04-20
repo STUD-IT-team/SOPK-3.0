@@ -5,7 +5,7 @@ from injection import Container
 
 from uuid import UUID
 
-from api import AuthCurrentUser, AuthRequireRole
+from api import AuthCurrentUser, AuthRequireRoles
 
 from .dto import (
     SessionResponse,
@@ -14,7 +14,7 @@ from .dto import (
     UpdateAssessmentDto, CanEndResponse, AllAssessmentResponse,
 )
 
-from api import AuthCurrentUser, AuthRequireRole
+from api import AuthCurrentUser, AuthRequireRoles
 from services.auth import AuthUser, AuthRole
 
 router = APIRouter(prefix="/session", tags=["Session"])
@@ -28,7 +28,7 @@ router = APIRouter(prefix="/session", tags=["Session"])
 )
 @inject
 def getAll(
-        user: AuthUser = Depends(AuthRequireRole(AuthRole.Admin)),
+        user: AuthUser = Depends(AuthRequireRoles(AuthRole.Admin)),
 ):
     pass
 
@@ -42,7 +42,7 @@ def getAll(
 @inject
 def getById(
     id: UUID,
-    user: AuthUser = Depends(AuthRequireRole(AuthRole.Admin)),
+    user: AuthUser = Depends(AuthRequireRoles(AuthRole.Admin)),
 ):
     pass
 
@@ -53,7 +53,7 @@ def getById(
 @inject
 def delete(
     id: UUID,
-    user: AuthUser = Depends(AuthRequireRole(AuthRole.Admin)),
+    user: AuthUser = Depends(AuthRequireRoles(AuthRole.Admin)),
 ):
     pass
 
@@ -66,7 +66,7 @@ def delete(
 )
 @inject
 def startSession(
-    user: AuthUser = Depends(AuthRequireRole(AuthRole.Organizer)),
+    user: AuthUser = Depends(AuthRequireRoles(AuthRole.Organizer)),
 ):
     pass
 
@@ -79,7 +79,7 @@ def startSession(
 )
 @inject
 def canEnd(
-    user: AuthUser = Depends(AuthRequireRole(AuthRole.Organizer)),
+    user: AuthUser = Depends(AuthRequireRoles(AuthRole.Organizer)),
 ):
     pass
 
@@ -92,7 +92,7 @@ def canEnd(
 )
 @inject
 def endSession(
-    user: AuthUser = Depends(AuthRequireRole(AuthRole.Organizer)),
+    user: AuthUser = Depends(AuthRequireRoles(AuthRole.Organizer)),
 ):
     pass
 
@@ -107,7 +107,7 @@ def endSession(
 def getAssessment(
     id: UUID,
     activistId: UUID,
-    user: AuthUser = Depends(AuthRequireRole(AuthRole.Organizer)),
+    user: AuthUser = Depends(AuthRequireRoles(AuthRole.Organizer)),
 ):
     pass
 
@@ -120,7 +120,7 @@ def getAssessment(
 @inject
 def getAllAssessments(
     id: UUID,
-    user: AuthUser = Depends(AuthRequireRole(AuthRole.Organizer)),
+    user: AuthUser = Depends(AuthRequireRoles(AuthRole.Organizer)),
 ):
     pass
 
@@ -136,6 +136,6 @@ def updateAssessment(
     id: UUID,
     activistId: UUID,
     data: UpdateAssessmentDto,
-    user: AuthUser = Depends(AuthRequireRole(AuthRole.Organizer)),
+    user: AuthUser = Depends(AuthRequireRoles(AuthRole.Organizer)),
 ):
     pass
