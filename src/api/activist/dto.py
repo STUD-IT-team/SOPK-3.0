@@ -24,17 +24,17 @@ class AllActivistResponse(PydanticBaseModel):
     activists: List[ActivistResponse]
 
 class UpdateActivistDataDto(PydanticBaseModel):
-    FullName: str | None = Field(alias='full_name')
-    Gender: Sex | None = Field(alias='sex')
-    PreferredDepartment: Department | None = Field(alias='department')
-    Phone: str | None = Field(alias='phone')
+    FullName: str = Field(alias='full_name')
+    Gender: Sex = Field(alias='sex')
+    PreferredDepartment: Department = Field(alias='department')
+    Phone: str = Field(alias='phone')
     
     model_config = ConfigDict(
         populate_by_name=True,
     )
 
 class UpdateActivistTimeslotDto(PydanticBaseModel):
-    TimeslotID: UUID | None = Field(alias='timeslot_id')
+    TimeslotID: UUID = Field(alias='timeslot_id')
     
     model_config = ConfigDict(
         populate_by_name=True,

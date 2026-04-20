@@ -5,7 +5,7 @@ from dependency_injector.wiring import inject, Provide
 from api.activist.dto import ActivistResponse, AllActivistResponse, UpdateActivistDataDto, ActivistSessionResponse, \
     UpdateActivistTimeslotDto
 from injection import Container, UnitOfWork
-from models import ActivistRepository
+from models import ActivistRepository, TimeslotRepository
 
 from uuid import UUID
 
@@ -70,17 +70,37 @@ async def updateData(
 
 @router.put(
     "/{id}/timeslot",
+    dependencies=[Depends(OrganizerOrActivistItself)],
     status_code=status.HTTP_200_OK,
     response_model=ActivistResponse,
     description="Update (or firstly set) activist's timeslot. Available to activist itself or organizer",
 )
 @inject
-def updateTimeslot(
+async def updateTimeslot(
         id: UUID,
         data: UpdateActivistTimeslotDto,
-        user: AuthUser = Depends(AuthRequireRoles(AuthRole.Activist)),
+        uow: UnitOfWork = Depends(Provide[Container.uow]),
 ):
-    pass
+    async with uow as uow:
+        repo = uow.get(TimeslotRepository)
+        ts = await repo.get(data.TimeslotID, for_update=True)
+        if ts is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Timeslot not found"
+            )
+            
+        filledSlotsCount = await repo.getFilledSlotsCount(ts)
+        if filledSlotsCount >= ts.SlotCount:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Timeslot is already full"
+            )
+        
+        activist = await uow.get(ActivistRepository).get(id, for_update=True)
+        activist.TimeslotID = data.TimeslotID
+        
+    return activist
 
 
 @router.delete(
