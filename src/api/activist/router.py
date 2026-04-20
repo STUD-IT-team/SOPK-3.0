@@ -5,7 +5,7 @@ from dependency_injector.wiring import inject, Provide
 from api.activist.dto import ActivistResponse, AllActivistResponse, UpdateActivistDataDto, ActivistSessionResponse, \
     UpdateActivistTimeslotDto
 from injection import Container, UnitOfWork
-from models import ActivistRepository, TimeslotRepository
+from models import ActivistRepository, TimeslotRepository, SessionRepository, SessionActivist
 
 from uuid import UUID
 
@@ -135,14 +135,39 @@ async def getInSession(
 
 @router.put(
     "/{id}/join/{sessionId}",
+    dependencies=[Depends(AuthRequireRolesOrUserItself(owner_role=AuthRole.Activist))],
     response_model=ActivistSessionResponse,
     status_code=status.HTTP_200_OK,
     description="Join a session. Available to activist itself only",
 )
 @inject
-def joinSession(
+async def joinSession(
         id: UUID,
         sessionId: UUID,
-        user: AuthUser = Depends(AuthRequireRoles(AuthRole.Activist)),
+        uow: UnitOfWork = Depends(Provide[Container.uow]),
 ):
-    pass
+    async with uow as uow:
+        activeSession = await uow.get(ActivistRepository).getActiveSession(id)
+        if activeSession is not None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="You are already in a session"
+            )
+        
+        sessionRepo = uow.get(SessionRepository)
+        session = await sessionRepo.get(sessionId, for_update=True)
+        if session is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Session not found"
+            )
+        if session.EndTime is not None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Session is already finished"
+            )
+
+        sessionActivist = SessionActivist(ActivistId=id, SessionId=sessionId)
+        await sessionRepo.save(sessionActivist)
+        
+    return session
