@@ -1,8 +1,7 @@
-from itertools import count
 from uuid import UUID
 from sqlmodel import select, delete, func
 from models import Timeslot, TimeslotRepository, Activist
-from.base import BaseRepository
+from .base import BaseRepository
 
 
 class SqlAlchemyTimeslotRepository(BaseRepository, TimeslotRepository):

@@ -3,7 +3,7 @@ from typing import Dict, Type
 from dependency_injector import containers, providers
 
 from adapters.postgres import SqlAlchemyActivistRepository, SqlAlchemyOrganizerRepository, SqlAlchemyUnitOfWork, \
-    SqlAlchemyTimeslotRepository
+    SqlAlchemyTimeslotRepository, SqlAlchemySessionRepository
 from database import PostgresDatabase, PostgresConfig
 from models.common.uow import UnitOfWork
 from services.auth import AuthCredentialsEncoder, AuthInfoValidationService, AuthService
@@ -60,7 +60,7 @@ class Container(containers.DeclarativeContainer):
     repo_map: Dict[Type, Type]  = providers.Object({
         ActivistRepository: SqlAlchemyActivistRepository,
         OrganizerRepository: SqlAlchemyOrganizerRepository,
-        SessionRepository: SessionRepository,
+        SessionRepository: SqlAlchemySessionRepository,
         TimeslotRepository: SqlAlchemyTimeslotRepository,
     })
 

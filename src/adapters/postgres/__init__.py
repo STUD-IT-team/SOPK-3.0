@@ -1,4 +1,6 @@
 from .repositories.activist import SqlAlchemyActivistRepository
 from .repositories.organizer import SqlAlchemyOrganizerRepository
 from .repositories.timeslot import SqlAlchemyTimeslotRepository
+from .repositories.session import SqlAlchemySessionRepository
+
 from .uow import SqlAlchemyUnitOfWork
