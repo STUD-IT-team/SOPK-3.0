@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, status, HTTPException
 
 from dependency_injector.wiring import inject, Provide
 
-from api.activist.dto import ActivistResponse, AllActivistResponse, UpdateActivistDataDto, ActivistSessionResponse, \
+from services.activist.dto import ActivistResponse, AllActivistResponse, UpdateActivistDataDto, ActivistSessionResponse, \
     UpdateActivistTimeslotDto
 from injection import Container, UnitOfWork
 from models import ActivistRepository, TimeslotRepository, SessionRepository, SessionActivist
@@ -10,7 +10,8 @@ from models import ActivistRepository, TimeslotRepository, SessionRepository, Se
 from uuid import UUID
 
 from api import AuthRequireRoles, OrganizerOrActivistItself, AuthRequireRolesOrUserItself
-from services.auth import AuthUser, AuthRole
+from services.auth import AuthRole
+from services.activist import ActivistService
 
 router = APIRouter(prefix="/activist", tags=["Activist"])
 
@@ -23,10 +24,8 @@ router = APIRouter(prefix="/activist", tags=["Activist"])
     dependencies=[Depends(AuthRequireRoles(AuthRole.Organizer))]
 )
 @inject
-async def getAll(uow: UnitOfWork = Depends(Provide[Container.uow])):
-    async with uow as uow:
-        activists = await uow.get(ActivistRepository).getAll()
-    
+async def getAll(service: ActivistService = Depends(Provide[Container.activistService])):
+    activists = await service.getAll()
     return {"activists": activists}
 
 

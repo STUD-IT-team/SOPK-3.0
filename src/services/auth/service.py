@@ -1,7 +1,7 @@
 from typing import Tuple
 from uuid import UUID
 
-from  models import ActivistRepository, OrganizerRepository, Activist, Organizer
+from models import ActivistRepository, OrganizerRepository, Activist, Organizer
 from models.common.uow import UnitOfWork
 from .coder import AuthCredentialsEncoder, DecodeSecurityError
 from .password import AuthInfoValidationService

@@ -7,6 +7,10 @@ from typing import List
 
 from models import Sex, Department
 
+__all__ = ["ActivistResponse", "AllActivistResponse", "UpdateActivistDataDto",
+           "ActivistSessionResponse", "UpdateActivistTimeslotDto"]
+
+
 class ActivistResponse(PydanticBaseModel):
     ID: UUID = Field(alias='id')
     UserName: str = Field(alias='username')
