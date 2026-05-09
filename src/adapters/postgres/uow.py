@@ -3,7 +3,7 @@ from typing import Type, Dict, Any, cast
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import PostgresDatabase
-from models import UnitOfWork, Repository
+from models import UnitOfWork, Repository, UoWNotEnteredError
 
 class SqlAlchemyUnitOfWork(UnitOfWork):
     def __init__(self, db: PostgresDatabase, repo_map: Dict[Type, Type]):
@@ -33,18 +33,18 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
 
     async def commit(self):
         if self.session is None:
-            raise RuntimeError("UoW not entered")
+            raise UoWNotEnteredError
         await self.session.flush()
         await self.session.commit()
 
     async def rollback(self):
         if self.session is None:
-            raise RuntimeError("UoW not entered")
+            raise UoWNotEnteredError
         await self.session.rollback()
 
     def get(self, repo_type: Type[Repository]) -> Repository:
         if self.session is None:
-            raise RuntimeError("UoW not entered")
+            raise UoWNotEnteredError
 
         if repo_type not in self._repos:
             if repo_type not in self._repo_map:

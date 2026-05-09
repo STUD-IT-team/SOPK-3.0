@@ -3,7 +3,7 @@ from typing import Type, TypeVar
 from models import BaseModelRepository
 
 
-__all__ = ["UnitOfWork", "Repository"]
+__all__ = ["UnitOfWork", "Repository", "UoWNotEnteredError"]
 
 Repository = TypeVar('Repository', bound='BaseModelRepository')
 
@@ -28,3 +28,7 @@ class UnitOfWork(ABC):
     @abstractmethod
     def get(self, t: Type[Repository]) -> Repository:
         pass
+
+
+class UoWNotEnteredError(Exception):
+    pass

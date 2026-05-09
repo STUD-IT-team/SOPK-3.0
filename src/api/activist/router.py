@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, status, HTTPException
 
 from dependency_injector.wiring import inject, Provide
 
-from services.activist.dto import ActivistResponse, AllActivistResponse, UpdateActivistDataDto, ActivistSessionResponse, \
+from api.activist.dto import ActivistResponse, AllActivistResponse, UpdateActivistDataDto, ActivistSessionResponse, \
     UpdateActivistTimeslotDto
 from injection import Container, UnitOfWork
 from models import ActivistRepository, TimeslotRepository, SessionRepository, SessionActivist
@@ -11,7 +11,7 @@ from uuid import UUID
 
 from api import AuthRequireRoles, OrganizerOrActivistItself, AuthRequireRolesOrUserItself
 from services.auth import AuthRole
-from services.activist import ActivistService
+from services.activist import ActivistService, UpdateDataDto as ServiceUpdateDataDto
 
 router = APIRouter(prefix="/activist", tags=["Activist"])
 
@@ -39,11 +39,9 @@ async def getAll(service: ActivistService = Depends(Provide[Container.activistSe
 @inject
 async def getById(
         id: UUID,
-        uow: UnitOfWork = Depends(Provide[Container.uow]),
+        service: ActivistService = Depends(Provide[Container.activistService]),
 ):
-    async with uow as uow:
-        activist = await uow.get(ActivistRepository).get(id)
-    
+    activist = await service.getById(id)
     return activist
         
 
@@ -58,13 +56,10 @@ async def getById(
 async def updateData(
         id: UUID, 
         data: UpdateActivistDataDto,
-        uow: UnitOfWork = Depends(Provide[Container.uow]),
+        service: ActivistService = Depends(Provide[Container.activistService]),
 ):
-    async with uow as uow:
-        activist = await uow.get(ActivistRepository).get(id, for_update=True)
-        activist.sqlmodel_update(data)
-        
-    return activist
+    serviceDto = ServiceUpdateDataDto(**data.model_dump())
+    return await service.updateData(id, serviceDto)
 
 
 @router.put(
