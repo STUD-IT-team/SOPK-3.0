@@ -5,13 +5,14 @@ from dependency_injector.wiring import inject, Provide
 from api.activist.dto import ActivistResponse, AllActivistResponse, UpdateActivistDataDto, ActivistSessionResponse, \
     UpdateActivistTimeslotDto
 from injection import Container, UnitOfWork
-from models import ActivistRepository, TimeslotRepository, SessionRepository, SessionActivist
+from models import ActivistRepository, SessionRepository, SessionActivist
 
 from uuid import UUID
 
 from api import AuthRequireRoles, OrganizerOrActivistItself, AuthRequireRolesOrUserItself
 from services.auth import AuthRole
-from services.activist import ActivistService, UpdateDataDto as ServiceUpdateDataDto
+from services.activist import ActivistService, UpdateDataDto as ServiceUpdateDataDto, TimeslotNotFoundError, \
+    TimeslotAlreadyFullError
 
 router = APIRouter(prefix="/activist", tags=["Activist"])
 
@@ -73,26 +74,20 @@ async def updateData(
 async def updateTimeslot(
         id: UUID,
         data: UpdateActivistTimeslotDto,
-        uow: UnitOfWork = Depends(Provide[Container.uow]),
+        service: ActivistService = Depends(Provide[Container.activistService]),
 ):
-    async with uow as uow:
-        repo = uow.get(TimeslotRepository)
-        ts = await repo.get(data.TimeslotID, for_update=True)
-        if ts is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Timeslot not found"
-            )
-            
-        filledSlotsCount = await repo.getFilledSlotsCount(ts)
-        if filledSlotsCount >= ts.SlotCount:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Timeslot is already full"
-            )
-        
-        activist = await uow.get(ActivistRepository).get(id, for_update=True)
-        activist.TimeslotID = data.TimeslotID
+    try:
+        activist = await service.updateTimeslot(id, data.TimeslotID)
+    except TimeslotNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Timeslot not found"
+        )
+    except TimeslotAlreadyFullError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Timeslot is already full"
+        )
         
     return activist
 
