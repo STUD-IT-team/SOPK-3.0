@@ -1,5 +1,5 @@
 from sqlmodel import select, delete
-from models import Session, SessionRepository
+from models import Session, SessionRepository, Assessment, SessionActivist, SessionOrganizer
 from .base import BaseRepository
 
 
@@ -27,7 +27,7 @@ class SqlAlchemySessionRepository(BaseRepository, SessionRepository):
         result = await self.session.execute(query)
         return result.scalars().all()
 
-    async def save(self, model: Session) -> Session:
+    async def save[T: (Session, Assessment, SessionActivist, SessionOrganizer)](self, model: T) -> T:
         self.session.add(model)
         return model
     

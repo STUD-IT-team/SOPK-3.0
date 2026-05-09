@@ -1,18 +1,13 @@
+from uuid import UUID
 from fastapi import APIRouter, Depends, status, HTTPException
-
 from dependency_injector.wiring import inject, Provide
-
+from injection import Container
 from api.activist.dto import ActivistResponse, AllActivistResponse, UpdateActivistDataDto, ActivistSessionResponse, \
     UpdateActivistTimeslotDto
-from injection import Container, UnitOfWork
-from models import ActivistRepository, SessionRepository, SessionActivist
-
-from uuid import UUID
-
 from api import AuthRequireRoles, OrganizerOrActivistItself, AuthRequireRolesOrUserItself
 from services.auth import AuthRole
 from services.activist import ActivistService, UpdateDataDto as ServiceUpdateDataDto, TimeslotNotFoundError, \
-    TimeslotAlreadyFullError
+    TimeslotAlreadyFullError, SessionNotFoundError, SessionAlreadyFinishedError, AlreadyJoinedSessionError
 
 router = APIRouter(prefix="/activist", tags=["Activist"])
 
@@ -113,12 +108,9 @@ async def delete(id: UUID, service: ActivistService = Depends(Provide[Container.
 @inject
 async def getInSession(
         id: UUID,
-        uow: UnitOfWork = Depends(Provide[Container.uow]),
+        service: ActivistService = Depends(Provide[Container.activistService]),
 ):
-    async with uow as uow:
-        activeSession = await uow.get(ActivistRepository).getActiveSession(id)
-    
-    return activeSession
+    return await service.getInSession(id)
 
 
 @router.put(
@@ -132,30 +124,24 @@ async def getInSession(
 async def joinSession(
         id: UUID,
         sessionId: UUID,
-        uow: UnitOfWork = Depends(Provide[Container.uow]),
+        service: ActivistService = Depends(Provide[Container.activistService])
 ):
-    async with uow as uow:
-        activeSession = await uow.get(ActivistRepository).getActiveSession(id)
-        if activeSession is not None:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="You are already in a session"
-            )
-        
-        sessionRepo = uow.get(SessionRepository)
-        session = await sessionRepo.get(sessionId, for_update=True)
-        if session is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Session not found"
-            )
-        if session.EndTime is not None:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Session is already finished"
-            )
-
-        sessionActivist = SessionActivist(ActivistId=id, SessionId=sessionId)
-        await sessionRepo.save(sessionActivist)
+    try:
+        session = await service.joinSession(id, sessionId)
+    except SessionNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Session not found"
+        )
+    except SessionAlreadyFinishedError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Session is already finished"
+        )
+    except AlreadyJoinedSessionError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="You are already in a session"
+        )
         
     return session
