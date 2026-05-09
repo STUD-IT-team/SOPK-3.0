@@ -25,6 +25,10 @@ class ActivistService:
 
         return activist
     
+    async def delete(self, id: UUID):
+        async with self.uow:
+            await self.uow.get(ActivistRepository).delete(id)
+        
     async def _getActivistOrRaise(self, id: UUID, for_update: bool = False):
         activist = await self.uow.get(ActivistRepository).get(id, for_update=for_update)
         if activist is None:

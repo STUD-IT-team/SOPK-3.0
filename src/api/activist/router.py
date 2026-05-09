@@ -104,9 +104,8 @@ async def updateTimeslot(
     description="Delete an activist. Available to admin only",
 )
 @inject
-async def delete(id: UUID, uow: UnitOfWork = Depends(Provide[Container.uow])):
-    async with uow as uow:
-        await uow.get(ActivistRepository).delete(id)
+async def delete(id: UUID, service: ActivistService = Depends(Provide[Container.activistService])):
+    await service.delete(id)
 
 
 @router.get(
