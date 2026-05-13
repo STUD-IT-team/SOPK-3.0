@@ -5,7 +5,7 @@ from injection import Container
 
 from uuid import UUID
 
-from api import AuthCurrentUser, AuthRequireRole
+from api import AuthCurrentUser, AuthRequireRoles
 from services.auth import AuthUser, AuthRole
 
 from .dto import (
@@ -26,7 +26,7 @@ router = APIRouter(prefix="/organizer", tags=["Organizer"])
 )
 @inject
 def getAll(
-    user: AuthUser = Depends(AuthRequireRole(AuthRole.Organizer))
+    user: AuthUser = Depends(AuthRequireRoles(AuthRole.Organizer))
 ):
     pass
 
@@ -40,7 +40,7 @@ def getAll(
 @inject
 def getById(
         id: UUID,
-        user: AuthUser = Depends(AuthRequireRole(AuthRole.Organizer)),
+        user: AuthUser = Depends(AuthRequireRoles(AuthRole.Organizer)),
 ):
     pass
 
@@ -54,7 +54,7 @@ def getById(
 @inject
 def post(
     data: CreateOrganizerDto,
-    user: AuthUser = Depends(AuthRequireRole(AuthRole.Admin)),
+    user: AuthUser = Depends(AuthRequireRoles(AuthRole.Admin)),
 ):
     pass
 
@@ -69,7 +69,7 @@ def post(
 def updateData(
     id: UUID,
     data: UpdateOrganizerDataDto,
-    user: AuthUser = Depends(AuthRequireRole(AuthRole.Organizer)),
+    user: AuthUser = Depends(AuthRequireRoles(AuthRole.Organizer)),
 ):
     pass
 
@@ -80,7 +80,7 @@ def updateData(
 @inject
 def delete(
     id: UUID,
-    user: AuthUser = Depends(AuthRequireRole(AuthRole.Organizer)),
+    user: AuthUser = Depends(AuthRequireRoles(AuthRole.Organizer)),
 ):
     pass
 
@@ -95,6 +95,6 @@ def delete(
 def joinSession(
     id: UUID,
     sessionId: UUID,
-    user: AuthUser = Depends(AuthRequireRole(AuthRole.Organizer))
+    user: AuthUser = Depends(AuthRequireRoles(AuthRole.Organizer))
 ):
     pass

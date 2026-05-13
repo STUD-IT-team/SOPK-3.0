@@ -7,5 +7,8 @@ database:
   echo: true_or_false
 
 app:
-  token: your_bot_token
   log_level: info
+
+jwt:
+  secret: your_jwt_secret
+  expire_minutes: 60

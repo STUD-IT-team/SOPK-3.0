@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from .auth import AuthRouter, AuthCurrentUser, AuthRequireRole
+from .auth import AuthRouter, AuthCurrentUser, AuthRequireRoles, AuthRequireRolesOrUserItself, OrganizerOrActivistItself
 from .session import SessionRouter
 from .activist import  ActivistRouter
 from .organizer import OrganizerRouter

@@ -1,4 +1,5 @@
 from .base import BaseModel, BaseModelRepository
+from .session import Session
 from sqlmodel import Field, SQLModel
 from enum import Enum
 from abc import ABC
@@ -57,10 +58,10 @@ class Activist(BaseModel, table=True):
 
 
 class ActivistRepository(BaseModelRepository):
-    async def get(self, id: uuid.UUID, for_update: bool = False) -> Activist:
+    async def get(self, id: uuid.UUID, for_update: bool = False) -> Activist | None:
         raise NotImplementedError
 
-    async def getUsername(self, username: str, for_update: bool = False) -> Activist:
+    async def getUsername(self, username: str, for_update: bool = False) -> Activist | None:
         raise NotImplementedError
     
     async def save(self, model: Activist) -> Activist:
@@ -72,5 +73,5 @@ class ActivistRepository(BaseModelRepository):
     async def getAll(self, for_update: bool = False) -> List[Activist]:
         raise NotImplementedError
     
-    
-    
+    async def getActiveSession(self, id: uuid.UUID, for_update: bool = False) -> Session | None:
+        raise NotImplementedError

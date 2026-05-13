@@ -2,11 +2,13 @@ from typing import Dict, Type
 
 from dependency_injector import containers, providers
 
-from adapters.postgres import SqlAlchemyActivistRepository, SqlAlchemyOrganizerRepository, SqlAlchemyUnitOfWork
+from adapters.postgres import SqlAlchemyActivistRepository, SqlAlchemyOrganizerRepository, SqlAlchemyUnitOfWork, \
+    SqlAlchemyTimeslotRepository, SqlAlchemySessionRepository
 from database import PostgresDatabase, PostgresConfig
 from models.common.uow import UnitOfWork
 from services.auth import AuthCredentialsEncoder, AuthInfoValidationService, AuthService
 from services.auth.hasher import PasswordHasher
+from services.activist import ActivistService
 from adapters.bcrypt import  BcryptPasswordHasher
 from adapters.jwt import JwtAuthCredentialsEncoder
 
@@ -15,7 +17,7 @@ from utils.logger.get import getLogger
 import sys
 import logging
 
-from models import ActivistRepository, SessionRepository, TimeslotRepository, OrganizerRepository
+from models import ActivistRepository, SessionRepository, TimeslotRepository, OrganizerRepository, activist
 
 class Container(containers.DeclarativeContainer):
     config = providers.Configuration(yaml_files=["config/app.yaml"])
@@ -59,8 +61,8 @@ class Container(containers.DeclarativeContainer):
     repo_map: Dict[Type, Type]  = providers.Object({
         ActivistRepository: SqlAlchemyActivistRepository,
         OrganizerRepository: SqlAlchemyOrganizerRepository,
-        SessionRepository: SessionRepository,
-        TimeslotRepository: TimeslotRepository,
+        SessionRepository: SqlAlchemySessionRepository,
+        TimeslotRepository: SqlAlchemyTimeslotRepository,
     })
 
     uow: UnitOfWork = providers.Factory(SqlAlchemyUnitOfWork, db=db, repo_map=repo_map)
@@ -71,3 +73,4 @@ class Container(containers.DeclarativeContainer):
         encoder=authCredentialsEncoder,
         validator=authInfoValidationService,
     )
+    activistService: ActivistService = providers.Factory(ActivistService, uow=uow)

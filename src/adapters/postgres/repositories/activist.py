@@ -1,6 +1,6 @@
 from sqlmodel import select
 
-from models import Activist, ActivistRepository
+from models import Activist, ActivistRepository, Session, SessionActivist
 from .base import BaseRepository
 
 import uuid
@@ -39,3 +39,12 @@ class SqlAlchemyActivistRepository(BaseRepository, ActivistRepository):
             query = query.with_for_update()
         result = await self.session.execute(query)
         return result.scalars().all()
+
+    async def getActiveSession(self, id: uuid.UUID, for_update: bool = False) -> Session | None:
+        query = select(Session).join(SessionActivist) \
+        .where(SessionActivist.ActivistId == id).where(Session.EndTime == None)
+        if for_update:
+            query = query.with_for_update()
+        
+        result = await self.session.execute(query)
+        return result.scalar_one_or_none()

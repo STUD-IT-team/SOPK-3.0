@@ -1,6 +1,5 @@
 from .base import BaseModel, BaseModelRepository
 from sqlmodel import Field, SQLModel
-from abc import ABC
 import uuid
 from  datetime import datetime
 from typing import List
@@ -29,6 +28,9 @@ class TimeslotRepository(BaseModelRepository):
         raise NotImplementedError
 
     async def getAll(self, for_update: bool = False) -> List[Timeslot]:
+        raise NotImplementedError
+    
+    async def getFilledSlotsCount(self, model: Timeslot) -> int:
         raise NotImplementedError
 
     async def save(self, model: Timeslot) -> Timeslot:
